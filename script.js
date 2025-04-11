@@ -129,14 +129,32 @@ function getWeatherIcon(iconCode) {
     return iconMap[iconCode] || 'question';
 }
 
+function isLocationFavorited(name, lat, lon) {
+    const favorites = getFavorites();
+    return favorites.some(fav => 
+        fav.name === name || 
+        (fav.coords && 
+         fav.coords.lat === (typeof lat === 'string' ? parseFloat(lat) : lat) && 
+         fav.coords.lon === (typeof lon === 'string' ? parseFloat(lon) : lon))
+    );
+}
+
 function generateWeatherHTML(data, forecastData) {
+    const isFavorite = isLocationFavorited(
+        data.name, 
+        data.coord.lat, 
+        data.coord.lon
+    );
+
     return `
         <div class="weather-display">
             <div class="weather-header">
                 <span class="city-name interactive">${data.name}</span>
-                <button class="add-favorite-btn" data-city="${data.name}" 
-                    data-lat="${data.coord.lat}" data-lon="${data.coord.lon}">
-                    <i class="far fa-star"></i>
+                <button class="add-favorite-btn ${isFavorite ? 'active' : ''}" 
+                    data-city="${data.name}" 
+                    data-lat="${data.coord.lat}" 
+                    data-lon="${data.coord.lon}">
+                    <i class="${isFavorite ? 'fas' : 'far'} fa-star"></i>
                 </button>
             </div>
             <p><i class="fas fa-temperature-three-quarters"></i> Температура: ${data.main.temp}°C</p>
@@ -198,23 +216,26 @@ window.addEventListener("click", (event) => {
 });
 
 // Theme switching
-lightThemeBtn.addEventListener("click", () => {
-    document.body.className = "";
-    document.body.style.backgroundImage = "var(--light-theme-bg)";
+function setTheme(theme) {
+    document.body.className = theme;
+    document.body.style.backgroundImage = `var(--${theme}-theme-bg)`;
     settingsModal.style.display = "none";
-});
+    updateFavoriteButtonsTheme();
+}
 
-darkThemeBtn.addEventListener("click", () => {
-    document.body.className = "dark-theme";
-    document.body.style.backgroundImage = "var(--dark-theme-bg)";
-    settingsModal.style.display = "none";
-});
+function updateFavoriteButtonsTheme() {
+    document.querySelectorAll('.add-favorite-btn').forEach(btn => {
+        // Force re-render of the button to apply theme styles
+        btn.style.display = 'inline-block';
+        setTimeout(() => {
+            btn.style.display = '';
+        }, 10);
+    });
+}
 
-pinkThemeBtn.addEventListener("click", () => {
-    document.body.className = "pink-theme";
-    document.body.style.backgroundImage = "var(--pink-theme-bg)";
-    settingsModal.style.display = "none";
-});
+lightThemeBtn.addEventListener("click", () => setTheme(""));
+darkThemeBtn.addEventListener("click", () => setTheme("dark"));
+pinkThemeBtn.addEventListener("click", () => setTheme("pink"));
 
 // Map functions
 function initMap() {
@@ -305,14 +326,15 @@ function addFavorite(name, coords = null) {
     const favorites = getFavorites();
     const id = Date.now().toString();
     
-    favorites.push({
+    const newFavorite = {
         id,
         name,
         coords
-    });
+    };
     
+    favorites.push(newFavorite);
     saveFavorites(favorites);
-    loadFavorites();
+    return newFavorite;
 }
 
 function removeFavorite(id) {
@@ -322,19 +344,30 @@ function removeFavorite(id) {
     loadFavorites();
 }
 
-// Add event listener for favorite buttons
+// Favorite button click handler
 document.addEventListener('click', function(e) {
     if (e.target.closest('.add-favorite-btn')) {
         const btn = e.target.closest('.add-favorite-btn');
         const city = btn.dataset.city;
-        const lat = btn.dataset.lat;
-        const lon = btn.dataset.lon;
-        addFavorite(city, { lat, lon });
+        const lat = parseFloat(btn.dataset.lat);
+        const lon = parseFloat(btn.dataset.lon);
         
-        // Change icon to solid star
-        const icon = btn.querySelector('i');
-        icon.classList.remove('far');
-        icon.classList.add('fas');
+        if (btn.classList.contains('active')) {
+            // Remove from favorites
+            const favorites = getFavorites();
+            const updatedFavorites = favorites.filter(fav => 
+                !(fav.name === city || 
+                (fav.coords && fav.coords.lat === lat && fav.coords.lon === lon))
+            );
+            saveFavorites(updatedFavorites);
+            btn.classList.remove('active');
+            btn.querySelector('i').classList.replace('fas', 'far');
+        } else {
+            // Add to favorites
+            addFavorite(city, { lat, lon });
+            btn.classList.add('active');
+            btn.querySelector('i').classList.replace('far', 'fas');
+        }
     }
 });
 

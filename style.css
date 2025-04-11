@@ -54,18 +54,28 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(255, 255, 255, 0.15);
+
     z-index: -1;
     pointer-events: none;
 }
 
 body.dark-theme {
-    background-image: var(--dark-theme-bg);
-    color: #e0e0e0;
+    background: 
+        linear-gradient(to bottom, #121212, #000000),
+        var(--dark-overlay),
+        url('dark_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    background-blend-mode: multiply;
+    background: #000 !important; 
 }
 
 body.dark-theme::after {
     background: var(--dark-overlay);
+    background: rgba(0, 0, 0, 0.5);
+    display: none !important;
 }
 
 /* ==================== */
@@ -368,16 +378,45 @@ body.pink-theme .favorite-weather {
 .add-favorite-btn {
     background: none;
     border: none;
-    color: var(--secondary-color);
     font-size: 1.2em;
     cursor: pointer;
     padding: 5px;
     min-width: auto;
     min-height: auto;
+    transition: all 0.3s ease;
 }
 
+/* Light theme */
+.add-favorite-btn i {
+    color: var(--secondary-color);
+}
+
+/* Dark theme */
+body.dark-theme .add-favorite-btn i {
+    color: var(--secondary-light);
+}
+
+/* Pink theme */
+body.pink-theme .add-favorite-btn i {
+    color: #e91e63;
+}
+
+/* Hover effects */
 .add-favorite-btn:hover {
-    transform: scale(1.1);
+    transform: scale(0.9);
+}
+
+/* Active (favorited) state */
+.add-favorite-btn.active i {
+    color: var(--secondary-hover);
+}
+
+body.dark-theme .add-favorite-btn.active i {
+    color: var(--secondary-color);
+}
+
+body.pink-theme .add-favorite-btn.active i {
+    color: #c2185b;
 }
 
 .fa-star {
