@@ -1,3 +1,5 @@
+
+
 // DOM Elements
 let apiKey = "6d6041256fe6fdc59c29e14298f22bfb";
 let cityInput = document.getElementById("cityInput");
@@ -7,9 +9,7 @@ let getLocationBtn = document.getElementById("getLocationBtn");
 let openSettingsBtn = document.querySelector(".settings-button");
 let closeSettingsBtn = document.getElementById("closeSettingsBtn");
 let settingsModal = document.getElementById("settingsModal");
-let lightThemeBtn = document.getElementById("lightThemeBtn");
-let darkThemeBtn = document.getElementById("darkThemeBtn");
-let pinkThemeBtn = document.getElementById("pinkThemeBtn");
+
 let homeTab = document.getElementById("homeTab");
 let continentsTab = document.getElementById("continentsTab");
 let mapTab = document.getElementById("mapTab");
@@ -26,7 +26,61 @@ let deferredPrompt;
 let map;
 let marker;
 
-// PWA Installation Handling
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const themeCards = document.querySelectorAll('.theme-card');
+  
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme) {
+      applyTheme(savedTheme);
+      highlightSelectedCard(savedTheme);
+    }
+  
+    themeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const savedTheme = localStorage.getItem('selectedTheme') ?? '';
+        applyTheme(savedTheme);
+        highlightSelectedCard(savedTheme);
+      });
+    });
+  });
+  
+  function applyTheme(themeName) {
+    const themeClasses = [
+      'theme-modern-blue',
+      'theme-warm-sunset',
+      'theme-minimal-forest',
+      'theme-vibrant-coral',
+      'theme-arctic-breeze',
+      'dark-theme',
+      'pink-theme'
+    ];
+  
+    document.body.classList.remove(...themeClasses);
+    if (themeName) {
+      document.body.classList.add(`theme-${themeName}`);
+    }
+  }
+  
+  function highlightSelectedCard(selectedTheme) {
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.classList.toggle('selected', card.dataset.theme === selectedTheme);
+    });
+  }
+  
+
+
+
+
+
+
+  // PWA Installation Handling
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -216,12 +270,57 @@ window.addEventListener("click", (event) => {
 });
 
 // Theme switching
-function setTheme(theme) {
-    document.body.className = theme;
-    document.body.style.backgroundImage = `var(--${theme}-theme-bg)`;
-    settingsModal.style.display = "none";
-    updateFavoriteButtonsTheme();
-}
+ 
+// Listen to all theme cards
+document.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const theme = card.dataset.theme;
+      applyTheme(theme);
+      localStorage.setItem('selectedTheme', theme);
+      highlightSelectedCard(theme);
+    });
+  });
+  
+  // Set the theme visually + background
+  function applyTheme(theme) {
+    const themeClasses = [
+      'theme-modern-blue',
+      'theme-warm-sunset',
+      'theme-minimal-forest',
+      'theme-vibrant-coral',
+      'theme-arctic-breeze',
+      'dark-theme',
+      'pink-theme'
+    ];
+  
+    document.body.classList.remove(...themeClasses);
+  
+    if (theme === '') {
+      document.body.style.backgroundImage = `var(--light-theme-bg)`;
+    } else if (theme === 'dark') {
+      document.body.classList.add('dark-theme');
+      document.body.style.backgroundImage = `var(--dark-theme-bg)`;
+    } else if (theme === 'pink') {
+      document.body.classList.add('pink-theme');
+      document.body.style.backgroundImage = `var(--pink-theme-bg)`;
+    } else {
+      document.body.classList.add(`theme-${theme}`);
+      document.body.style.backgroundImage = `var(--${theme}-theme-bg)`;
+    }
+  }
+  
+  // Highlight the selected card visually
+  function highlightSelectedCard(selectedTheme) {
+    document.querySelectorAll('.theme-card').forEach(card => {
+      card.classList.toggle('selected', card.dataset.theme === selectedTheme);
+    });
+  }
+
+
+
+
+
+
 
 function updateFavoriteButtonsTheme() {
     document.querySelectorAll('.add-favorite-btn').forEach(btn => {
@@ -233,9 +332,7 @@ function updateFavoriteButtonsTheme() {
     });
 }
 
-lightThemeBtn.addEventListener("click", () => setTheme(""));
-darkThemeBtn.addEventListener("click", () => setTheme("dark"));
-pinkThemeBtn.addEventListener("click", () => setTheme("pink"));
+
 
 // Map functions
 function initMap() {
